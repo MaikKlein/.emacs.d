@@ -6,4 +6,7 @@
 (use-package evil-commentary
   :ensure t)
 
+(use-package evil-magit
+  :ensure t)
+
 (provide 'evil-init)
