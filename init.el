@@ -36,9 +36,7 @@
 (use-package magit)
 
 (use-package helm
-  :ensure t
-  :config
-  (define-key helm-map (kbd "<escape>") 'helm-keyboard-quit))
+  :ensure t)
 
 (use-package solarized-theme
   :ensure t
