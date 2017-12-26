@@ -1,10 +1,9 @@
 (use-package evil
     :ensure t
-    :init
-    (evil-mode)
     :config
     (evil-declare-abort-repeat 'save-buffer-always)
-    (define-key minibuffer-local-map (kbd "<escape>") 'keyboard-escape-quit))
+    (define-key minibuffer-local-map (kbd "<escape>") 'keyboard-escape-quit)
+    (evil-mode))
 
 (use-package evil-commentary
   :ensure t)
