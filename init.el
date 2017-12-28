@@ -1,13 +1,13 @@
 (require 'package) ;; You might already have this line
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos)) 
-		    (not (gnutls-available-p)))) 
+                    (not (gnutls-available-p)))) 
        (url (concat (if no-ssl "http" "https")
-		    "://melpa.org/packages/"))) 
+                    "://melpa.org/packages/"))) 
   (add-to-list 'package-archives (cons "melpa" url) t))
 (when (< emacs-major-version 24)
   ;; For important compatibility libraries like cl-lib
   (add-to-list 'package-archives '("gnu" .
-				   "http://elpa.gnu.org/packages/")))
+                                   "http://elpa.gnu.org/packages/")))
 (package-initialize) ;; You might already have this line
 
 ;; Bootstrap `use-package'
@@ -21,11 +21,21 @@
 (toggle-scroll-bar -1)
 (tool-bar-mode -1)
 (blink-cursor-mode 0)
-(save-place-mode 1)		;; Remember cursor position
+(save-place-mode 1)             ;; Remember cursor position
 (setq inhibit-startup-screen t) ;; No default welcome screen
 (setq dotfile-path "~/.emacs.d/init.el")
 (setq evil-want-C-u-scroll t)
+(setq-default indent-tabs-mode nil)
 ;;(byte-recompile-directory (expand-file-name "~/.emacs.d") 0) ;; Compiles the config files on start up
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init
+  (setq markdown-enable-math t)
+  (setq markdown-command "multimarkdown | smartypants"))
 
 (use-package 
   diminish 
@@ -52,8 +62,8 @@
   :ensure t 
   :init (which-key-mode) 
   :config (setq which-key-sort-order 'which-key-key-order-alpha
-		which-key-side-window-max-width 0.33
-		which-key-idle-delay 0.2) 
+                which-key-side-window-max-width 0.33
+                which-key-idle-delay 0.2) 
   :diminish "")
 
 (use-package magit
@@ -65,11 +75,11 @@
   :config
   ;; Forces helm to stick to the bottom
   (add-to-list 'display-buffer-alist `(,(rx bos "*helm" (*
-							 not-newline)
-					    "*" eos) 
-				       (display-buffer-in-side-window) 
-				       (inhibit-same-window . t) 
-				       (window-height . 0.4))))
+                                                         not-newline)
+                                            "*" eos) 
+                                       (display-buffer-in-side-window) 
+                                       (inhibit-same-window . t) 
+                                       (window-height . 0.4))))
 
 (use-package 
   solarized-theme 
@@ -85,9 +95,9 @@
   ;;(setq general-default-keymaps 'evil-normal-state-map)
   (general-evil-setup t) 
   (general-define-key :states '(insert) 
-		      "C-SPC" 'company-complete) 
+                      "C-SPC" 'company-complete) 
   (general-define-key :states '(insert normal) 
-		      "C-s" 'save-buffer-always)
+                      "C-s" 'save-buffer-always)
 
   ;; (general-define-key
   ;;   :states '(normal motion emacs)
@@ -184,10 +194,10 @@
 
 (defun rust-init () 
   (interactive) 
-  (general-define-key :keymap 'rust-mode-map 
-		      :prefix "g" 
-		      :states '(normal) 
-		      "d" 'racer-find-definition) 
+  (general-define-key 
+                      :prefix "g" 
+                      :states '(normal) 
+                      "d" 'racer-find-definition) 
   (rust-mode) 
   (racer-mode) 
   (eldoc-mode) 
@@ -195,21 +205,21 @@
   (flycheck-mode))
 
 (define-fringe-bitmap 'flycheck-fringe-bitmap-ball (vector #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000
-							   #b00000000))
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000
+                                                           #b00000000))
 
 
 
@@ -217,7 +227,7 @@
   flycheck 
   :ensure t 
   :config (flycheck-define-error-level 'warning 
-	    :fringe-bitmap 'flycheck-fringe-bitmap-ball) 
+            :fringe-bitmap 'flycheck-fringe-bitmap-ball) 
   (flycheck-define-error-level 'error 
     :severity 100 
     :compilation-level 2 
@@ -233,16 +243,17 @@
 (use-package 
   rust-mode 
   :ensure t 
-  :config (add-hook 'rust-mode-hook #'racer-mode) 
+  :config
+  (add-hook 'rust-mode-hook #'racer-mode) 
   (add-hook 'racer-mode-hook #'eldoc-mode) 
   (add-hook 'racer-mode-hook #'company-mode) 
   (add-hook 'racer-mode-hook (lambda () 
-			       ((general-define-key :keymap
-						    'rust-mode-map 
-						    :prefix "g" 
-						    :states '(normal) 
-						    "d"
-						    'racer-find-definition)))) 
+                               (interactive)
+                               (general-define-key :keymap 'rust-mode-map 
+                                                   :prefix "g" 
+                                                   :states '(normal) 
+                                                   "d"
+                                                   'racer-find-definition))) 
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
 
 (use-package 
@@ -273,7 +284,7 @@
   :config (require 'spaceline-config) 
   (spaceline-spacemacs-theme) 
   (setq spaceline-highlight-face-func
-	'spaceline-highlight-face-evil-state) 
+        'spaceline-highlight-face-evil-state) 
   (spaceline-compile))
 
 
@@ -287,3 +298,17 @@
   (set-buffer-modified-p t) 
   (save-buffer) 
   (evil-normal-state))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (markdown-mode winum which-key use-package spaceline-all-the-icons solarized-theme racer persp-mode helm-projectile general flycheck-rust evil-terminal-cursor-changer evil-magit evil-commentary elisp-format diminish company))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
