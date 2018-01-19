@@ -16,17 +16,88 @@
   (package-install 'use-package) 
   (setq use-package-always-ensure t))
 
-(set-default-font "Source Code Pro 12")
-(menu-bar-mode -1)
-(toggle-scroll-bar -1)
-(tool-bar-mode -1)
+;;(set-default-font "Source Code Pro 12")
+(setq default-frame-alist '((font . "Source Code Pro 12")))
+(menu-bar-mode 0)
+(toggle-scroll-bar 0)
+(tool-bar-mode 0)
 (blink-cursor-mode 0)
 (save-place-mode 1)             ;; Remember cursor position
 (setq inhibit-startup-screen t) ;; No default welcome screen
 (setq dotfile-path "~/.emacs.d/init.el")
 (setq evil-want-C-u-scroll t)
+;; Smooth scrolling
+(setq scroll-step 1) 
+(setq scroll-preserve-screen-position 1)
+(setq scroll-conservatively 10000)
+(setq gc-cons-threshold 8000000)
+(fringe-mode 5)
+(define-fringe-bitmap 'empty-fringe
+  (vector #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000
+          #b0000))
+
+;; No popups anymore
+(setq use-dialog-box nil)
 (setq-default indent-tabs-mode nil)
+
+(fset 'yes-or-no-p 'y-or-n-p)
 ;;(byte-recompile-directory (expand-file-name "~/.emacs.d") 0) ;; Compiles the config files on start up
+
+;; (use-package persp-mode
+;;   :ensure t
+;;   :config
+;;   (setq wg-morph-on nil) ;; switch off animation
+;;   (setq persp-autokill-buffer-on-remove 'kill-weak)
+;;   (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
+      ;; 
+;; (use-package workgroups2
+;;   :ensure t
+;;   :config
+;;   (workgroups-mode 1))
+
+(use-package ivy
+  :ensure t
+  :config
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  (ivy-mode 1))
+(use-package counsel
+  :ensure t
+  :config
+  (define-key ivy-minibuffer-map (kbd "<escape>") 'minibuffer-keyboard-quit)
+  (define-key swiper-map (kbd "<escape>") 'minibuffer-keyboard-quit)
+  (counsel-mode 1))
+
+(use-package counsel-projectile
+  :ensure t)
+(use-package toml-mode
+  :ensure t)
+;; (use-package helm-swoop
+;;   :ensure t
+;;   :config
+;;   (setq helm-swoop-speed-or-color t))
+;; (use-package helm-ls-git
+;;   :ensure t)
+(use-package evil-magit
+  :ensure t)
+(use-package csharp-mode
+  :ensure t)
+
 (use-package markdown-mode
   :ensure t
   :commands (markdown-mode gfm-mode)
@@ -69,17 +140,20 @@
 (use-package magit
   :ensure t)
 
-(use-package 
-  helm 
-  :ensure t 
-  :config
-  ;; Forces helm to stick to the bottom
-  (add-to-list 'display-buffer-alist `(,(rx bos "*helm" (*
-                                                         not-newline)
-                                            "*" eos) 
-                                       (display-buffer-in-side-window) 
-                                       (inhibit-same-window . t) 
-                                       (window-height . 0.4))))
+;; (use-package 
+;;   helm 
+;;   :ensure t 
+;;   :config
+;;   ;; Forces helm to stick to the bottom
+;;   (setq helm-grep-ag-command "rg --smart-case --no-heading --line-number %s %s %s")
+;;   (add-to-list 'display-buffer-alist `(,(rx bos "*helm" (*
+;;                                                          not-newline)
+;;                                             "*" eos) 
+;;                                        (display-buffer-in-side-window) 
+;;                                        (inhibit-same-window . t) 
+;;                                        (window-height . 0.4)))
+;;   (helm-mode 1))
+
 
 (use-package 
   solarized-theme 
@@ -106,12 +180,13 @@
   (general-define-key
    :states '(normal motion emacs) 
    :prefix "SPC" 
-   "SPC" '(helm-M-x :which-key "Meta")
+   "SPC" '(counsel-M-x :which-key "Meta")
    "p" '(:ignore t :which-key "Project")
-   "pf" '(helm-projectile-find-file :which-key "Find file")
-   "pp" '(helm-projectile-switch-project :which-key "Projectile")
+   "pf" '(counsel-projectile-find-file :which-key "Find file")
+   "pp" '(counsel-projectile-switch-project :which-key "Projectile")
+   "pg" '(counsel-rg :which-key "Grep")
    "f" '(:ignore t :which-key "Files")
-   "ff" '(helm-find-files :which-key "Find file")
+   "ff" '(counsel-find-file :which-key "Find file")
    "fe" '(:ignore :which-key "Dotfiles")
    "fed" '(open-config :which-key "init.el") "fer" '(reload-config :which-key "init.el")
    "g" '(:ignore t :which-key "Git")
@@ -129,6 +204,10 @@
 ;; "l1" '((lambda () (interactive) (perspeen-goto-ws 1)) :which-key "Workspace 1")
 ;; "l2" '((lambda () (interactive) (perspeen-goto-ws 2)) :which-key "Workspace 2")
 ;; "l3" '(ws3 :which-key "Workspace 3")
+   "b" '(:ignore t :which-key "Buffer")
+   "bb" '(ivy-switch-buffer :which-key "Buffer list")
+   "s" '(:ignore t :which-key "Search")
+   "ss" '(swiper :which-key "Swoop")
    "h" '(:ignore t :which-key "Help")
    "hd" '(:ignore t :which-key "Describe")
    "hdk" '(describe-key :which-key "Describe key")
@@ -152,10 +231,10 @@
   (setq projectile-require-project-root nil) 
   (projectile-mode +1))
 
-(use-package 
-  helm-projectile 
-  :ensure t 
-  :after projectile)
+;; (use-package 
+;;   helm-projectile 
+;;   :ensure t 
+;;   :after projectile)
 
 ;; (use-package powerline
 ;;   :ensure t
@@ -192,6 +271,62 @@
   evil-init 
   :load-path "config/")
 
+
+;; (define-fringe-bitmap 'flycheck-fringe-bitmap-ball (vector #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000
+;;                                                            #b00000000))
+
+
+
+(use-package
+  flycheck
+  :ensure t
+  :config
+  (flycheck-define-error-level 'error
+    :severity 2
+    :overlay-category 'flycheck-error-overlay
+    :fringe-bitmap 'empty-fringe
+    :error-list-face 'flycheck-error-list-error
+    :fringe-face 'flycheck-fringe-error)
+  (flycheck-define-error-level 'warning
+    :severity 1
+    :overlay-category 'flycheck-warning-overlay
+    :fringe-bitmap 'empty-fringe
+    :error-list-face 'flycheck-error-list-warning
+    :fringe-face 'flycheck-fringe-warning)
+  (flycheck-define-error-level 'info
+    :severity 0
+    :overlay-category 'flycheck-info-overlay
+    :fringe-bitmap 'empty-fringe
+    :error-list-face 'flycheck-error-list-info
+    :fringe-face 'flycheck-fringe-info))
+  ;; :config (flycheck-define-error-level 'warning 
+  ;;           :fringe-bitmap 'flycheck-fringe-bitmap-ball) 
+  ;; (flycheck-define-error-level 'error 
+  ;;   :severity 100 
+  ;;   :compilation-level 2 
+  ;;   :overlay-category 'flycheck-error-overlay 
+  ;;   :fringe-bitmap 'flycheck-fringe-bitmap-ball 
+  ;;   :fringe-face 'flycheck-fringe-error 
+  ;;   :error-list-face 'flycheck-error-list-error))
+(use-package 
+  flycheck-rust 
+  :ensure t 
+  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
 (defun rust-init () 
   (interactive) 
   (general-define-key 
@@ -200,73 +335,53 @@
                       "d" 'racer-find-definition) 
   (rust-mode) 
   (racer-mode) 
+  ;;(lsp-rust)
   (eldoc-mode) 
   (company-mode) 
   (flycheck-mode))
-
-(define-fringe-bitmap 'flycheck-fringe-bitmap-ball (vector #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000
-                                                           #b00000000))
-
-
-
-(use-package 
-  flycheck 
-  :ensure t 
-  :config (flycheck-define-error-level 'warning 
-            :fringe-bitmap 'flycheck-fringe-bitmap-ball) 
-  (flycheck-define-error-level 'error 
-    :severity 100 
-    :compilation-level 2 
-    :overlay-category 'flycheck-error-overlay 
-    :fringe-bitmap 'flycheck-fringe-bitmap-ball 
-    :fringe-face 'flycheck-fringe-error 
-    :error-list-face 'flycheck-error-list-error))
-(use-package 
-  flycheck-rust 
-  :ensure t 
-  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
-
+;; (use-package lsp-mode
+;;   :ensure t)
+;; (use-package lsp-rust
+;;   :after lsp-mode
+;;   :ensure t
+;;   :config
+;;   (setq lsp-rust-rls-command '("rustup" "run" "nightly" "rls")))
 (use-package 
   rust-mode 
   :ensure t 
   :config
+  ;;(add-hook 'rust-mode-hook #'lsp-rust-enable)
+  ;;(add-hook 'rust-mode-hook #'company-mode)
+
   (add-hook 'rust-mode-hook #'racer-mode) 
   (add-hook 'racer-mode-hook #'eldoc-mode) 
+  (add-hook 'racer-mode-hook #'flycheck-mode)
   (add-hook 'racer-mode-hook #'company-mode) 
   (add-hook 'racer-mode-hook (lambda () 
-                               (interactive)
-                               (general-define-key :keymap 'rust-mode-map 
-                                                   :prefix "g" 
-                                                   :states '(normal) 
-                                                   "d"
-                                                   'racer-find-definition))) 
+                                (interactive)
+                                (general-define-key :keymap 'rust-mode-map 
+                                                    :prefix "g" 
+                                                    :states '(normal) 
+                                                    "d"
+                                                    'racer-find-definition))) 
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
 
 (use-package 
   racer 
   :ensure t 
   :after 'rust-mode)
+;; (use-package company-lsp
+;;   :ensure t
+;;   :config
+;;   (push 'company-lsp company-backends))
 
 (use-package 
   company 
   :ensure t 
   :config
   ;; Disable auto completion
-  (setq company-idle-delay nil))
+  (setq company-idle-delay nil)
+  (company-mode))
 
 (defun open-config () 
   (interactive) 
@@ -276,21 +391,29 @@
   (interactive) 
   (load-file dotfile-path))
 
-(use-package 
-  spaceline 
+;; (use-package 
+;;   spaceline 
+;;   :ensure t
+;;   ;;:init
+;;   ;;(use-package spaceline-config)
+;;   :config (require 'spaceline-config) 
+;;   (spaceline-spacemacs-theme) 
+;;   (setq spaceline-highlight-face-func
+;;         'spaceline-highlight-face-evil-state) 
+;;   (spaceline-compile))
+(use-package powerline
   :ensure t
-  ;;:init
-  ;;(use-package spaceline-config)
-  :config (require 'spaceline-config) 
-  (spaceline-spacemacs-theme) 
-  (setq spaceline-highlight-face-func
-        'spaceline-highlight-face-evil-state) 
-  (spaceline-compile))
+  :config
+  (powerline-default-theme))
 
-
-(use-package 
-  spaceline-all-the-icons 
+(use-package powerline-evil
   :ensure t)
+  
+
+
+;; (use-package 
+;;   spaceline-all-the-icons 
+;;   :ensure t)
 
 (defun save-buffer-always () 
   "Save the buffer even if it is not modified." 
@@ -305,7 +428,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (markdown-mode winum which-key use-package spaceline-all-the-icons solarized-theme racer persp-mode helm-projectile general flycheck-rust evil-terminal-cursor-changer evil-magit evil-commentary elisp-format diminish company))))
+    (counsel ivy workgroups2 winum which-key use-package toml-mode spaceline-all-the-icons solarized-theme racer powerline-evil persp-mode markdown-mode helm-swoop helm-projectile helm-ls-git general flycheck-rust evil-terminal-cursor-changer evil-surround evil-magit evil-commentary diminish csharp-mode company airline-themes))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
