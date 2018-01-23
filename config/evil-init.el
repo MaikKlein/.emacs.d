@@ -15,5 +15,9 @@
 
 (use-package evil-magit
   :ensure t)
+(use-package evil-visualstar
+  :ensure t
+  :config
+  (global-evil-visualstar-mode))
 
 (provide 'evil-init)

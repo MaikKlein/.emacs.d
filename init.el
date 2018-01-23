@@ -16,6 +16,27 @@
   (package-install 'use-package) 
   (setq use-package-always-ensure t))
 
+(defun desktop-create-and-clear (name)
+  "Create a new session, identified by a name.
+The session is created in a subdirectory of `desktop+-base-dir'.
+It can afterwards be reloaded using `desktop+-load'.
+
+As a special case, if NAME is left blank, the session is
+automatically named after the current working directory."
+  (interactive "MDesktop name: ")
+  (desktop-kill)
+  (setq desktop-dirname (desktop+--dirname name))
+  (make-directory desktop-dirname 'parents)
+  (desktop-save desktop-dirname)
+  (desktop+--set-frame-title)
+  (desktop-save-mode 1)
+  (desktop-clear)
+  (dotimes (i 9)
+    (eyebrowse--delete-window-config i)))
+
+(defun find-structs ()
+  (interactive)
+  (counsel-rg "(type|enum|struct|trait)[\\t]+" nil "-g '*.rs'" nil))
 ;;(set-default-font "Source Code Pro 12")
 (setq default-frame-alist '((font . "Source Code Pro 12")))
 (menu-bar-mode 0)
@@ -31,6 +52,10 @@
 (setq scroll-preserve-screen-position 1)
 (setq scroll-conservatively 10000)
 (setq gc-cons-threshold 8000000)
+
+(setq backup-directory-alist
+      `(("." . ,(concat user-emacs-directory "backups"))))
+(global-auto-revert-mode t)
 (fringe-mode 5)
 (define-fringe-bitmap 'empty-fringe
   (vector #b0000
@@ -57,7 +82,12 @@
 
 (fset 'yes-or-no-p 'y-or-n-p)
 ;;(byte-recompile-directory (expand-file-name "~/.emacs.d") 0) ;; Compiles the config files on start up
-
+;; (use-package perspective
+;;   :ensure t
+;;   :config
+;;   (persp-mode))
+;; (use-package persp-projectile
+;;   :ensure t)
 ;; (use-package persp-mode
 ;;   :ensure t
 ;;   :config
@@ -65,11 +95,51 @@
 ;;   (setq persp-autokill-buffer-on-remove 'kill-weak)
 ;;   (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
       ;; 
+;; (use-package wconf
+;;   :ensure t
+;;   :config
+;;   (add-hook 'desktop-after-read-hook      ;so we have all buffers again
+;;           (lambda ()
+;;             (wconf-load)
+;;             (wconf-switch-to-config 0)
+;;             (add-hook 'kill-emacs-hook
+;;                       (lambda ()
+;;                         (wconf-store-all)
+;;                         (wconf-save))))
+;;           'append))
 ;; (use-package workgroups2
 ;;   :ensure t
 ;;   :config
 ;;   (workgroups-mode 1))
 
+(use-package avy
+  :ensure t)
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+(use-package desktop+
+  :ensure t)
+(use-package eyebrowse
+  :ensure t
+  :config
+  (add-to-list 'window-persistent-parameters '(window-side . writable))
+  (add-to-list 'window-persistent-parameters '(window-slot . writable))
+  (eyebrowse-mode t))
+
+;; (use-package workgroups2
+;;   :ensure t
+;;   :config
+;;   (setq wg-prefix-key (kbd "C-c z"))
+;;   ;; Change workgroups session file
+;;   (setq wg-session-file "~/.emacs.d/.emacs_workgroups")
+;;   ;; What to do on Emacs exit / workgroups-mode exit?
+;;   ;; (setq wg-emacs-exit-save-behavior           'save)      ; Options: 'save 'ask nil
+;;   ;; (setq wg-workgroups-mode-exit-save-behavior 'save)      ; Options: 'save 'ask nil
+;;   (workgroups-mode 1))
+;; Sorts queries from ivy
+(use-package smex
+  :ensure t)
 (use-package ivy
   :ensure t
   :config
@@ -187,13 +257,28 @@
    "pg" '(counsel-rg :which-key "Grep")
    "f" '(:ignore t :which-key "Files")
    "ff" '(counsel-find-file :which-key "Find file")
+   "fs" '(find-structs :which-key "Find file")
+   "fl" '(counsel-locate :which-key "Locate")
    "fe" '(:ignore :which-key "Dotfiles")
    "fed" '(open-config :which-key "init.el") "fer" '(reload-config :which-key "init.el")
    "g" '(:ignore t :which-key "Git")
    "gs" '(magit-status :which-key "git status")
    ";" '(evil-commentary :which-key "Comment")
+   "o" '(:ignore t :which-key "Workspace")
+   "o1" '(eyebrowse-switch-to-window-config-1 :which-key "Window 1")
+   "o2" '(eyebrowse-switch-to-window-config-2 :which-key "Window 2")
+   "o3" '(eyebrowse-switch-to-window-config-3 :which-key "Window 3")
+   "o4" '(eyebrowse-switch-to-window-config-4 :which-key "Window 4")
+   "o5" '(eyebrowse-switch-to-window-config-5 :which-key "Window 5")
+   "o6" '(eyebrowse-switch-to-window-config-6 :which-key "Window 6")
+   "o7" '(eyebrowse-switch-to-window-config-7 :which-key "Window 7")
+   "o7" '(eyebrowse-switch-to-window-config-7 :which-key "Window 7")
+   "o8" '(eyebrowse-switch-to-window-config-8 :which-key "Window 8")
+   "o9" '(eyebrowse-switch-to-window-config-9 :which-key "Window 9")
+   "ok" '(eyebrowse-close-window-config :which-key "Close Window")
    "l" '(:ignore t :which-key "Workspace")
-   "lc" '(wg-create-workgroup :which-key "Create workspace")
+   "lc" '(desktop-create-and-clear :which-key "Create desktop")
+   "ll" '(desktop+-load :which-key "Load desktop")
 ;; "lc" '(wg-create-workgroup :which-key "Create workspace")
 ;; "lk" '(wg-kill-workgroup :which-key "Kill workspace")
 ;; "l1" '(wg-switch-to-workgroup-at-index-0 :which-key "Workspace 1")
@@ -208,6 +293,7 @@
    "bb" '(ivy-switch-buffer :which-key "Buffer list")
    "s" '(:ignore t :which-key "Search")
    "ss" '(swiper :which-key "Swoop")
+   "sd" '(avy-goto-char-2 :which-key "Goto char 2")
    "h" '(:ignore t :which-key "Help")
    "hd" '(:ignore t :which-key "Describe")
    "hdk" '(describe-key :which-key "Describe key")
@@ -428,7 +514,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (counsel ivy workgroups2 winum which-key use-package toml-mode spaceline-all-the-icons solarized-theme racer powerline-evil persp-mode markdown-mode helm-swoop helm-projectile helm-ls-git general flycheck-rust evil-terminal-cursor-changer evil-surround evil-magit evil-commentary diminish csharp-mode company airline-themes))))
+    (avy rainbow-delimiters desktop+ wconf persp-projectile eyebrowse counsel ivy workgroups2 winum which-key use-package toml-mode spaceline-all-the-icons solarized-theme racer powerline-evil persp-mode markdown-mode helm-swoop helm-projectile helm-ls-git general flycheck-rust evil-terminal-cursor-changer evil-surround evil-magit evil-commentary diminish csharp-mode company airline-themes))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
