@@ -34,9 +34,22 @@ automatically named after the current working directory."
   (dotimes (i 9)
     (eyebrowse--delete-window-config i)))
 
+;; (defun find-structs ()
+;;   (interactive)
+;;   (counsel-rg "(type|enum|struct|trait)[\\t]+([a-zA-Z0-9_]+)" nil "-g '*.rs'" nil))
+
 (defun find-structs ()
-  (interactive)
-  (counsel-rg "(type|enum|struct|trait)[\\t]+" nil "-g '*.rs'" nil))
+  (interactive
+    (ivy-read "Find structs: "
+              (counsel-rg "(type|enum|struct|trait)[\\t]+([a-zA-Z0-9_]+)" nil "-g '*.rs'" nil)
+              :dynamic-collection t
+              :keymap counsel-ag-map
+              :history 'counsel-git-grep-history
+              :action #'counsel-git-grep-action
+              :unwind (lambda ()
+                        (counsel-delete-process)
+                        (swiper--cleanup))
+              :caller 'find-structs)))
 ;;(set-default-font "Source Code Pro 12")
 (setq default-frame-alist '((font . "Source Code Pro 12")))
 (menu-bar-mode 0)
@@ -52,7 +65,7 @@ automatically named after the current working directory."
 (setq scroll-preserve-screen-position 1)
 (setq scroll-conservatively 10000)
 (setq gc-cons-threshold 8000000)
-
+(setq global-eldoc-mode nil)
 (setq backup-directory-alist
       `(("." . ,(concat user-emacs-directory "backups"))))
 (global-auto-revert-mode t)
@@ -79,6 +92,7 @@ automatically named after the current working directory."
 ;; No popups anymore
 (setq use-dialog-box nil)
 (setq-default indent-tabs-mode nil)
+(setq redisplay-dont-pause t)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 ;;(byte-recompile-directory (expand-file-name "~/.emacs.d") 0) ;; Compiles the config files on start up
@@ -112,6 +126,12 @@ automatically named after the current working directory."
 ;;   :config
 ;;   (workgroups-mode 1))
 
+(use-package rg
+  :ensure t)
+(use-package counsel-etags
+  :ensure t
+  :config
+  (add-to-list 'counsel-etags-ignore-filenames "TAGS"))
 (use-package avy
   :ensure t)
 (use-package rainbow-delimiters
@@ -251,6 +271,9 @@ automatically named after the current working directory."
    :states '(normal motion emacs) 
    :prefix "SPC" 
    "SPC" '(counsel-M-x :which-key "Meta")
+   "," '(cargo-process-fmt :which-key "Format")
+   "e" '(:ignore t :which-key "Error")
+   "en" '(flycheck-next-error :which-key "Next error")
    "p" '(:ignore t :which-key "Project")
    "pf" '(counsel-projectile-find-file :which-key "Find file")
    "pp" '(counsel-projectile-switch-project :which-key "Projectile")
@@ -293,6 +316,7 @@ automatically named after the current working directory."
    "bb" '(ivy-switch-buffer :which-key "Buffer list")
    "s" '(:ignore t :which-key "Search")
    "ss" '(swiper :which-key "Swoop")
+   "sr" '(ivy-resume :which-key "Resume last search")
    "sd" '(avy-goto-char-2 :which-key "Goto char 2")
    "h" '(:ignore t :which-key "Help")
    "hd" '(:ignore t :which-key "Describe")
@@ -377,10 +401,14 @@ automatically named after the current working directory."
 
 
 
+(use-package cargo
+  :ensure t)
 (use-package
   flycheck
   :ensure t
   :config
+  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq flycheck-navigation-minimum-level 'error)
   (flycheck-define-error-level 'error
     :severity 2
     :overlay-category 'flycheck-error-overlay
@@ -440,7 +468,7 @@ automatically named after the current working directory."
   ;;(add-hook 'rust-mode-hook #'company-mode)
 
   (add-hook 'rust-mode-hook #'racer-mode) 
-  (add-hook 'racer-mode-hook #'eldoc-mode) 
+  ;;(add-hook 'racer-mode-hook #'eldoc-mode) 
   (add-hook 'racer-mode-hook #'flycheck-mode)
   (add-hook 'racer-mode-hook #'company-mode) 
   (add-hook 'racer-mode-hook (lambda () 
@@ -512,9 +540,11 @@ automatically named after the current working directory."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(electric-pair-mode t)
+ '(global-eldoc-mode nil)
  '(package-selected-packages
    (quote
-    (avy rainbow-delimiters desktop+ wconf persp-projectile eyebrowse counsel ivy workgroups2 winum which-key use-package toml-mode spaceline-all-the-icons solarized-theme racer powerline-evil persp-mode markdown-mode helm-swoop helm-projectile helm-ls-git general flycheck-rust evil-terminal-cursor-changer evil-surround evil-magit evil-commentary diminish csharp-mode company airline-themes))))
+    (counsel-etags rg cargo avy rainbow-delimiters desktop+ wconf persp-projectile eyebrowse counsel ivy workgroups2 winum which-key use-package toml-mode spaceline-all-the-icons solarized-theme racer powerline-evil persp-mode markdown-mode helm-swoop helm-projectile helm-ls-git general flycheck-rust evil-terminal-cursor-changer evil-surround evil-magit evil-commentary diminish csharp-mode company airline-themes))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
